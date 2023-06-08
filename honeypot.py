@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-# importing libraries
+
 import argparse
 import threading
 import socket
@@ -12,19 +12,19 @@ import json
 import paramiko
 from paramiko.rsakey import RSAKey
 
-# init SSH banner
+
 SSH_BANNER = "SSH-2.0-OpenSSH_8.2p1 Ubuntu-Not-a-Honeypot-4ubuntu0.1"
 
 HOST_KEY = None
 
-# init arrow keys character sequence, to filter them out
+
 UP_KEY = "\x1b[A".encode()
 DOWN_KEY = "\x1b[B".encode()
 RIGHT_KEY = "\x1b[C".encode()
 LEFT_KEY = "\x1b[D".encode()
 BACK_KEY = "\x7f".encode()
 
-# init logger for logging all activity
+
 logging.basicConfig(
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     level=logging.INFO,
@@ -128,7 +128,7 @@ def handle_connection(client, addr):
     try:
         transport = paramiko.Transport(client)
         transport.add_server_key(HOST_KEY)
-        # changing banner to appear more convincing
+       
         transport.local_version = SSH_BANNER
         server = SshHoneypot(client_ip)
         try:
@@ -138,7 +138,7 @@ def handle_connection(client, addr):
             print("*** SSH negotiation failed.")
             raise Exception("SSH negotiation failed")
 
-        # waiting 30 seconds for auth to complete
+        
         chan = transport.accept(60)
         if chan is None:
             print("*** No channel (from " + client_ip + ").")
@@ -174,7 +174,7 @@ def handle_connection(client, addr):
             raise Exception("No shell request")
 
         try:
-            # sending a convincing MOTD to the client
+           
             chan.send(
                 f"{'*'*25}\n\rWelcome to Ubuntu 18.04.4 LTS (GNU/Linux 4.15.0-128-generic x86_64)\n\rPlease rest assured you are NOT in a Honeypot Server :)\n\r{'*'*25}\r\n\r\n"
             )
@@ -185,7 +185,7 @@ def handle_connection(client, addr):
                 while not command.endswith("\r"):
                     transport = chan.recv(1024)
                     print(client_ip + "- received:", transport)
-                    # echo input to pseudo-simulate a basic terminal
+                    
                     if (
                         transport != UP_KEY
                         and transport != DOWN_KEY
@@ -199,7 +199,7 @@ def handle_connection(client, addr):
                 chan.send("\r\n")
                 command = command.rstrip()
                 logging.info("Command received ({}): {}".format(client_ip, command))
-                # handling commands to the SSH server
+                
                 if command == "exit":
                     print(f"Connection closed (via exit command) from: {client_ip}")
                     logging.info(
@@ -241,7 +241,7 @@ def start_server(port, bind):
         print("*** Bind failed: {}".format(err))
         traceback.print_exc()
         sys.exit(1)
-    # using multi-threading to handle parallel connections
+    
     while True:
         try:
             sock.listen(100)
@@ -257,7 +257,7 @@ def start_server(port, bind):
 
 
 if __name__ == "__main__":
-    # parse arguments passed to the executable
+   
     parser = argparse.ArgumentParser(description="Run an SSH Honeypot Server")
     parser.add_argument(
         "--port",
@@ -276,7 +276,7 @@ if __name__ == "__main__":
         action="store",
     )
     args = parser.parse_args()
-    # check for a server private key, if not generate a new one
+    
     try:
         if isfile("server.key"):
             print("Server RSA key found")
